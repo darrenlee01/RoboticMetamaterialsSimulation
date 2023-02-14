@@ -1,18 +1,18 @@
 import pymunk
 from pymunk.pygame_util import *
 from pymunk.vec2d import Vec2d
+import pymunk.constraints
 
 import pygame
 from pygame.locals import *
 
 import math
-from PIL import Image
 
 space = pymunk.Space()
 space.gravity = 0, -900
 b0 = space.static_body
 
-size = w, h = 400, 200
+size = w, h = 800, 800
 fps = 30
 steps = 10
 
@@ -23,27 +23,27 @@ WHITE = (255, 255, 255)
 
 class PinJoint:
     def __init__(self, b, b2, a=(0, 0), a2=(0, 0)):
-        joint = pymunk.constraint.PinJoint(b, b2, a, a2)
+        joint = pymunk.constraints.PinJoint(b, b2, a, a2)
         space.add(joint)
 
 
 class PivotJoint:
     def __init__(self, b, b2, a=(0, 0), a2=(0, 0), collide=True):
-        joint = pymunk.constraint.PinJoint(b, b2, a, a2)
+        joint = pymunk.constraints.PinJoint(b, b2, a, a2)
         joint.collide_bodies = collide
         space.add(joint)
 
 
 class SlideJoint:
     def __init__(self, b, b2, a=(0, 0), a2=(0, 0), min=50, max=100, collide=True):
-        joint = pymunk.constraint.SlideJoint(b, b2, a, a2, min, max)
+        joint = pymunk.constraints.SlideJoint(b, b2, a, a2, min, max)
         joint.collide_bodies = collide
         space.add(joint)
 
 
 class GrooveJoint:
     def __init__(self, a, b, groove_a, groove_b, anchor_b):
-        joint = pymunk.constraint.GrooveJoint(
+        joint = pymunk.constraints.GrooveJoint(
             a, b, groove_a, groove_b, anchor_b)
         joint.collide_bodies = False
         space.add(joint)
@@ -51,33 +51,33 @@ class GrooveJoint:
 
 class DampedRotarySpring:
     def __init__(self, b, b2, angle, stiffness, damping):
-        joint = pymunk.constraint.DampedRotarySpring(
+        joint = pymunk.constraints.DampedRotarySpring(
             b, b2, angle, stiffness, damping)
         space.add(joint)
 
 
 class RotaryLimitJoint:
     def __init__(self, b, b2, min, max, collide=True):
-        joint = pymunk.constraint.RotaryLimitJoint(b, b2, min, max)
+        joint = pymunk.constraints.RotaryLimitJoint(b, b2, min, max)
         joint.collide_bodies = collide
         space.add(joint)
 
 
 class RatchetJoint:
     def __init__(self, b, b2, phase, ratchet):
-        joint = pymunk.constraint.GearJoint(b, b2, phase, ratchet)
+        joint = pymunk.constraints.GearJoint(b, b2, phase, ratchet)
         space.add(joint)
 
 
 class SimpleMotor:
     def __init__(self, b, b2, rate):
-        joint = pymunk.constraint.SimpleMotor(b, b2, rate)
+        joint = pymunk.constraints.SimpleMotor(b, b2, rate)
         space.add(joint)
 
 
 class GearJoint:
     def __init__(self, b, b2, phase, ratio):
-        joint = pymunk.constraint.GearJoint(b, b2, phase, ratio)
+        joint = pymunk.constraints.GearJoint(b, b2, phase, ratio)
         space.add(joint)
 
 
@@ -205,7 +205,23 @@ class App:
 
 if __name__ == '__main__':
     Box()
-    p = 100, 180
-    c = Circle(p)
-    c.body.apply_impulse_at_local_point((10000, 0))
+    p0 = Vec2d(100, 110)
+    v = Vec2d(50, 0)
+
+    arm = Segment(p0, v)
+    PivotJoint(b0, arm.body, p0)
+    SimpleMotor(b0, arm.body, 1)
+
+    arm2 = Segment(p0+v, v)
+    PivotJoint(arm.body, arm2.body, v, (0, 0))
+    DampedRotarySpring(arm.body, arm2.body, 0, 10000000, 10000)
+
+    p0 = Vec2d(300, 110)
+    arm = Segment(p0, v)
+    PivotJoint(b0, arm.body, p0)
+    SimpleMotor(b0, arm.body, 1)
+
+    arm2 = Segment(p0+v, v)
+    PivotJoint(arm.body, arm2.body, v, (0, 0))
+    RotaryLimitJoint(arm.body, arm2.body, -1, 1)
     App().run()
