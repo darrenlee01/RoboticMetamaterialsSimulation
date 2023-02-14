@@ -1,1 +1,23 @@
 /__pycache*
+
+
+    Box()
+    p0 = Vec2d(400, 300)
+    v = Vec2d(50, 0)
+
+    arm = Segment(p0, v)
+    PivotJoint(b0, arm.body, p0)
+    # PivotJoint(b0, arm.body, p0)
+
+    arm2 = Segment(p0+v, v)
+    PivotJoint(arm.body, arm2.body, v, (0, 0))
+    # DampedRotarySpring(arm.body, arm2.body, 0, 10000000, 10000)
+
+    r = Rectangle( (570, 325), (100, 50) )
+
+
+    PivotJoint(arm2.body, r.body, v, Vec2d(-50, -25))
+    
+    a = App()
+    a.rect = r
+    a.run()
