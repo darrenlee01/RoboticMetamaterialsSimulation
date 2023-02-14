@@ -130,6 +130,7 @@ class Poly:
 
 class Rectangle:
     def __init__(self, pos, size=(100, 50)):
+        # self.body = pymunk.Body(body_type = pymunk.Body.STATIC)
         self.body = pymunk.Body()
         self.body.position = pos
 
@@ -147,7 +148,6 @@ class App:
         self.screen = pygame.display.set_mode(size)
         self.draw_options = DrawOptions(self.screen)
         self.running = True
-        self.gif = 0
         self.images = []
 
     def run(self):
@@ -164,6 +164,7 @@ class App:
         pygame.quit()
 
     def do_event(self, event):
+        
         if event.type == QUIT:
             self.running = False
 
@@ -173,9 +174,17 @@ class App:
 
             elif event.key == K_p:
                 pygame.image.save(self.screen, 'joint.png')
+            
+            elif event.key == K_RIGHT:
+                orig_x, orig_y = self.rect.body.position
+                self.rect.body.position = (orig_x + 10, orig_y)
+                space.reindex_shapes_for_body(self.rect.body)
+            
+            elif event.key == K_LEFT:
+                orig_x, orig_y = self.rect.body.position
+                self.rect.body.position = (orig_x - 10, orig_y)
+                space.reindex_shapes_for_body(self.rect.body)
 
-            elif event.key == K_g:
-                self.gif = 60
 
     def draw(self):
         self.screen.fill(GRAY)
@@ -197,4 +206,20 @@ if __name__ == '__main__':
     PivotJoint(r1.body, r2.body, v2, v1, False)
     # SimpleMotor(r2.body, r1.body, 5)
 
-    App().run()
+
+    # p0 = Vec2d(400, 300)
+    # v = Vec2d(50, 0)
+
+    # arm = Segment(p0, v)
+    # PivotJoint(b0, arm.body, p0)
+    # SimpleMotor(b0, arm.body, 1)
+
+    # arm2 = Segment(p0+v, v)
+    # PivotJoint(arm.body, arm2.body, v, (0, 0))
+    # DampedRotarySpring(arm.body, arm2.body, 0, 10000000, 10000)
+
+    # r = Rectangle( (300, 300) )
+    
+    a = App()
+    # a.rect = r
+    a.run()

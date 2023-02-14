@@ -15,6 +15,9 @@ def draw(space, window, draw_options):
 width, height = 800, 800
 window = pygame.display.set_mode((width, height))
 
+def create_boundaries(space, width, height):
+    
+
 
 
 def run (window, width, height):
