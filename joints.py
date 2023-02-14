@@ -9,7 +9,6 @@ from pygame.locals import *
 import math
 
 space = pymunk.Space()
-space.gravity = 0, -900
 b0 = space.static_body
 
 size = w, h = 800, 800
@@ -19,7 +18,6 @@ steps = 10
 BLACK = (0, 0, 0)
 GRAY = (220, 220, 220)
 WHITE = (255, 255, 255)
-
 
 class PinJoint:
     def __init__(self, b, b2, a=(0, 0), a2=(0, 0)):
@@ -131,7 +129,7 @@ class Poly:
 
 
 class Rectangle:
-    def __init__(self, pos, size=(80, 50)):
+    def __init__(self, pos, size=(100, 50)):
         self.body = pymunk.Body()
         self.body.position = pos
 
@@ -184,44 +182,19 @@ class App:
         space.debug_draw(self.draw_options)
         pygame.display.update()
 
-        text = f'fpg: {self.clock.get_fps():.1f}'
-        pygame.display.set_caption(text)
-        self.make_gif()
-
-    def make_gif(self):
-        if self.gif > 0:
-            strFormat = 'RGBA'
-            raw_str = pygame.image.tostring(self.screen, strFormat, False)
-            image = Image.frombytes(
-                strFormat, self.screen.get_size(), raw_str)
-            self.images.append(image)
-            self.gif -= 1
-            if self.gif == 0:
-                self.images[0].save('joint.gif',
-                                    save_all=True, append_images=self.images[1:],
-                                    optimize=True, duration=1000//fps, loop=0)
-                self.images = []
-
 
 if __name__ == '__main__':
     Box()
-    p0 = Vec2d(100, 110)
-    v = Vec2d(50, 0)
+    p1 = Vec2d(300, 400)
+    r1 = Rectangle(p1)
+    v1 = (-50, 30)
+    PivotJoint(r1.body, b0, v1, p1 + v1, False)
+    # SimpleMotor(r1.body, b0, -5)
+    p2 = Vec2d(400, 400)
+    r2 = Rectangle(p2)
+    v2 = (50, 30)
+    # SimpleMotor(r2.body, b0, 5)
+    PivotJoint(r1.body, r2.body, v2, v1, False)
+    # SimpleMotor(r2.body, r1.body, 5)
 
-    arm = Segment(p0, v)
-    PivotJoint(b0, arm.body, p0)
-    SimpleMotor(b0, arm.body, 1)
-
-    arm2 = Segment(p0+v, v)
-    PivotJoint(arm.body, arm2.body, v, (0, 0))
-    DampedRotarySpring(arm.body, arm2.body, 0, 10000000, 10000)
-
-    p0 = Vec2d(300, 110)
-    arm = Segment(p0, v)
-    PivotJoint(b0, arm.body, p0)
-    SimpleMotor(b0, arm.body, 1)
-
-    arm2 = Segment(p0+v, v)
-    PivotJoint(arm.body, arm2.body, v, (0, 0))
-    RotaryLimitJoint(arm.body, arm2.body, -1, 1)
     App().run()
