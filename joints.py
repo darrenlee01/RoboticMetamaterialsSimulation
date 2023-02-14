@@ -12,7 +12,7 @@ space = pymunk.Space()
 space.gravity = 0, -900
 b0 = space.static_body
 
-size = w, h = 800, 800
+size = w, h = 800, 400
 fps = 30
 steps = 10
 
@@ -132,7 +132,7 @@ class Poly:
 
 class Rectangle:
     def __init__(self, pos, size=(80, 50)):
-        self.body = pymunk.Body()
+        self.body = pymunk.Body(body_type = pymunk.Body.STATIC)
         self.body.position = pos
 
         shape = pymunk.Poly.create_box(self.body, size)
@@ -149,7 +149,6 @@ class App:
         self.screen = pygame.display.set_mode(size)
         self.draw_options = DrawOptions(self.screen)
         self.running = True
-        self.gif = 0
         self.images = []
 
     def run(self):
@@ -166,6 +165,7 @@ class App:
         pygame.quit()
 
     def do_event(self, event):
+        
         if event.type == QUIT:
             self.running = False
 
@@ -175,9 +175,17 @@ class App:
 
             elif event.key == K_p:
                 pygame.image.save(self.screen, 'joint.png')
+            
+            elif event.key == K_RIGHT:
+                orig_x, orig_y = self.rect.body.position
+                self.rect.body.position = (orig_x + 10, orig_y)
+                space.reindex_shapes_for_body(self.rect.body)
+            
+            elif event.key == K_LEFT:
+                orig_x, orig_y = self.rect.body.position
+                self.rect.body.position = (orig_x - 10, orig_y)
+                space.reindex_shapes_for_body(self.rect.body)
 
-            elif event.key == K_g:
-                self.gif = 60
 
     def draw(self):
         self.screen.fill(GRAY)
@@ -186,26 +194,12 @@ class App:
 
         text = f'fpg: {self.clock.get_fps():.1f}'
         pygame.display.set_caption(text)
-        self.make_gif()
 
-    def make_gif(self):
-        if self.gif > 0:
-            strFormat = 'RGBA'
-            raw_str = pygame.image.tostring(self.screen, strFormat, False)
-            image = Image.frombytes(
-                strFormat, self.screen.get_size(), raw_str)
-            self.images.append(image)
-            self.gif -= 1
-            if self.gif == 0:
-                self.images[0].save('joint.gif',
-                                    save_all=True, append_images=self.images[1:],
-                                    optimize=True, duration=1000//fps, loop=0)
-                self.images = []
 
 
 if __name__ == '__main__':
     Box()
-    p0 = Vec2d(100, 110)
+    p0 = Vec2d(400, 300)
     v = Vec2d(50, 0)
 
     arm = Segment(p0, v)
@@ -216,12 +210,8 @@ if __name__ == '__main__':
     PivotJoint(arm.body, arm2.body, v, (0, 0))
     DampedRotarySpring(arm.body, arm2.body, 0, 10000000, 10000)
 
-    p0 = Vec2d(300, 110)
-    arm = Segment(p0, v)
-    PivotJoint(b0, arm.body, p0)
-    SimpleMotor(b0, arm.body, 1)
-
-    arm2 = Segment(p0+v, v)
-    PivotJoint(arm.body, arm2.body, v, (0, 0))
-    RotaryLimitJoint(arm.body, arm2.body, -1, 1)
-    App().run()
+    r = Rectangle( (300, 300) )
+    
+    a = App()
+    a.rect = r
+    a.run()
