@@ -129,9 +129,11 @@ class Poly:
 
 
 class Rectangle:
-    def __init__(self, pos, size=(100, 50)):
-        # self.body = pymunk.Body(body_type = pymunk.Body.STATIC)
-        self.body = pymunk.Body()
+    def __init__(self, pos, size=(100, 50), body_static = False):
+        if body_static:
+            self.body = pymunk.Body(body_type = pymunk.Body.STATIC)
+        else:
+            self.body = pymunk.Body()
         self.body.position = pos
 
         shape = pymunk.Poly.create_box(self.body, size)
@@ -218,8 +220,10 @@ if __name__ == '__main__':
     # PivotJoint(arm.body, arm2.body, v, (0, 0))
     # DampedRotarySpring(arm.body, arm2.body, 0, 10000000, 10000)
 
-    # r = Rectangle( (300, 300) )
+    r = Rectangle( (500, 450), body_static = True)
+
+    PivotJoint(r2.body, r.body, v2, Vec2d(-50, -25), False)
     
     a = App()
-    # a.rect = r
+    a.rect = r
     a.run()
