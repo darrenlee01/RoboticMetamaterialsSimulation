@@ -9,7 +9,6 @@ from pygame.locals import *
 import math
 
 space = pymunk.Space()
-space.gravity = (0, 100)
 b0 = space.static_body
 
 size = w, h = 800, 800
@@ -130,7 +129,7 @@ class Poly:
 
 
 class Rectangle:
-    def __init__(self, pos, collision_type, size=(100, 50), body_static = False):
+    def __init__(self, pos, size=(100, 50), body_static = False):
         if body_static:
             self.body = pymunk.Body(body_type = pymunk.Body.STATIC)
         else:
@@ -141,7 +140,6 @@ class Rectangle:
         shape.density = 0.1
         shape.elasticity = 1
         shape.friction = 1
-        shape.collision_type = collision_type
         space.add(self.body, shape)
 
 
@@ -180,24 +178,14 @@ class App:
                 pygame.image.save(self.screen, 'joint.png')
             
             elif event.key == K_RIGHT:
-                orig_x, orig_y = self.actuator.body.position
-                self.actuator.body.position = (orig_x + 10, orig_y)
-                space.reindex_shapes_for_body(self.actuator.body)
+                orig_x, orig_y = self.rect.body.position
+                self.rect.body.position = (orig_x + 10, orig_y)
+                space.reindex_shapes_for_body(self.rect.body)
             
             elif event.key == K_LEFT:
-                orig_x, orig_y = self.actuator.body.position
-                self.actuator.body.position = (orig_x - 10, orig_y)
-                space.reindex_shapes_for_body(self.actuator.body)
-
-            elif event.key == K_UP:
-                orig_x, orig_y = self.rect_up.body.position
-                self.rect_up.body.position = (orig_x, orig_y - 10)
-                space.reindex_shapes_for_body(self.rect_up.body)
-            
-            elif event.key == K_DOWN:
-                orig_x, orig_y = self.rect_up.body.position
-                self.rect_up.body.position = (orig_x, orig_y + 10)
-                space.reindex_shapes_for_body(self.rect_up.body)
+                orig_x, orig_y = self.rect.body.position
+                self.rect.body.position = (orig_x - 10, orig_y)
+                space.reindex_shapes_for_body(self.rect.body)
 
 
     def draw(self):
@@ -205,35 +193,37 @@ class App:
         space.debug_draw(self.draw_options)
         pygame.display.update()
 
-def collide (arbiter, space, data):
-    print("hello")
 
 if __name__ == '__main__':
     Box()
     p1 = Vec2d(300, 400)
-    r1 = Rectangle(p1, 1)
+    r1 = Rectangle(p1)
     v1 = (-50, 30)
-    PivotJoint(r1.body, b0, v1, p1 + v1, True) #could be false
+    PivotJoint(r1.body, b0, v1, p1 + v1, True)
+    # SimpleMotor(r1.body, b0, -5)
     p2 = Vec2d(400, 400)
-    r2 = Rectangle(p2, 2)
-
-    handler = space.add_collision_handler(1, 2)
-    handler.seperate = collide
-
+    r2 = Rectangle(p2)
     v2 = (50, 30)
-    PivotJoint(r1.body, r2.body, v2, v1, True) #could be false
+    # SimpleMotor(r2.body, b0, 5)
+    PivotJoint(r1.body, r2.body, v2, v1, True)
+    # SimpleMotor(r2.body, r1.body, 5)
 
 
+    # p0 = Vec2d(400, 300)
+    # v = Vec2d(50, 0)
 
+    # arm = Segment(p0, v)
+    # PivotJoint(b0, arm.body, p0)
+    # SimpleMotor(b0, arm.body, 1)
 
+    # arm2 = Segment(p0+v, v)
+    # PivotJoint(arm.body, arm2.body, v, (0, 0))
+    # DampedRotarySpring(arm.body, arm2.body, 0, 10000000, 10000)
 
-    actuator = Rectangle( (500, 450), 3, body_static = True) 
+    r = Rectangle( (500, 450), body_static = True)
 
-    PivotJoint(r2.body, actuator.body, v2, Vec2d(-50, -25), True)
-
-    pushing_rect = Rectangle( (350, 500), 4, size = (50, 100), body_static = True)
+    PivotJoint(r2.body, r.body, v2, Vec2d(-50, -25), True)
     
     a = App()
-    a.actuator = actuator
-    a.rect_up = pushing_rect
+    a.rect = r
     a.run()
