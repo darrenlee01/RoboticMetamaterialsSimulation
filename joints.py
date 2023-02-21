@@ -33,7 +33,7 @@ class PivotJoint:
 
 
 class SlideJoint:
-    def __init__(self, b, b2, a=(0, 0), a2=(0, 0), min=50, max=100, collide=True):
+    def __init__(self, b, b2, a=(0, 0), a2=(0, 0), min=0, max=0, collide=True):
         joint = pymunk.constraints.SlideJoint(b, b2, a, a2, min, max)
         joint.collide_bodies = collide
         space.add(joint)
@@ -199,13 +199,15 @@ if __name__ == '__main__':
     p1 = Vec2d(300, 400)
     r1 = Rectangle(p1)
     v1 = (-50, 30)
-    PivotJoint(r1.body, b0, v1, p1 + v1, True)
+    SlideJoint(r1.body, b0, v1, p1 + v1)
     # SimpleMotor(r1.body, b0, -5)
     p2 = Vec2d(400, 400)
     r2 = Rectangle(p2)
     v2 = (50, 30)
     # SimpleMotor(r2.body, b0, 5)
-    PivotJoint(r1.body, r2.body, v2, v1, True)
+    SlideJoint(r1.body, r2.body, v2, v1)
+    # PivotJoint(r1.body, r2.body, v2, v1)
+    # PivotJoint(r1.body, r2.body, (50,-30), (-50, -30))
     # SimpleMotor(r2.body, r1.body, 5)
 
 
@@ -222,7 +224,12 @@ if __name__ == '__main__':
 
     r = Rectangle( (500, 450), body_static = True)
 
-    PivotJoint(r2.body, r.body, v2, Vec2d(-50, -25), True)
+    # PivotJoint(r2.body, r.body, v2, Vec2d(-50, -25), True)
+    SlideJoint(r2.body, r.body, v2, Vec2d(-50, -25))
+    # joint = pymunk.DampedSpring(a=r1.body, b=r2.body, 
+    #         anchor_a=(50,-30), anchor_b=(-50,-30), 
+    #         rest_length=0, stiffness=800, damping=10)
+    # space.add(joint)
     
     a = App()
     a.rect = r
