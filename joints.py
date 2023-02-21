@@ -184,8 +184,9 @@ class App:
             
             elif event.key == K_LEFT:
                 orig_x, orig_y = self.rect.body.position
-                self.rect.body.position = (orig_x - 10, orig_y)
-                space.reindex_shapes_for_body(self.rect.body)
+                if orig_x - 10 > 250:
+                    self.rect.body.position = (orig_x - 10, orig_y)
+                    space.reindex_shapes_for_body(self.rect.body)
 
 
     def draw(self):

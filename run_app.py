@@ -35,7 +35,7 @@ class PivotJoint:
 
 
 class SlideJoint:
-    def __init__(self, b, b2, a=(0, 0), a2=(0, 0), min=50, max=100, collide=True):
+    def __init__(self, b, b2, a=(0, 0), a2=(0, 0), min=0, max=0, collide=True):
         joint = pymunk.constraints.SlideJoint(b, b2, a, a2, min, max)
         joint.collide_bodies = collide
         space.add(joint)
@@ -221,14 +221,14 @@ if __name__ == '__main__':
     p1 = Vec2d(300, 400)
     left_rect = Rectangle(p1)
     v1 = (-50, 30)
-    PivotJoint(left_rect.body, b0, v1, p1 + v1, True)
+    SlideJoint(left_rect.body, b0, v1, p1 + v1)
     p2 = Vec2d(400, 400)
     right_rect = Rectangle(p2)
 
     v2 = (50, 30)
 
     valley = Vec2d(0, -60)
-    pj = PivotJoint(left_rect.body, right_rect.body, v2, v1, True)
+    pj = SlideJoint(left_rect.body, right_rect.body, v2, v1, True)
 
     # PivotJoint(r1.body, r2.body, v2 + valley, v1 + valley, True)
 
@@ -238,7 +238,7 @@ if __name__ == '__main__':
 
     actuator = Rectangle( (500, 460), body_static = True) 
 
-    PivotJoint(right_rect.body, actuator.body, v2, Vec2d(-50, -30), True)
+    SlideJoint(right_rect.body, actuator.body, v2, Vec2d(-50, -30))
 
     pushing_rect = Rectangle( (350, 500), size = (50, 100), body_static = True)
     
