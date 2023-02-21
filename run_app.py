@@ -2,6 +2,7 @@ import pymunk
 from pymunk.pygame_util import *
 from pymunk.vec2d import Vec2d
 import pymunk.constraints
+import math
 
 import pygame
 from pygame.locals import *
@@ -198,38 +199,53 @@ class App:
                 self.rect_up.body.position = (orig_x, orig_y + 10)
                 space.reindex_shapes_for_body(self.rect_up.body)
 
+        if event.type == pygame.MOUSEBUTTONUP:
+            pos = pygame.mouse.get_pos()
+            print(pos, type(pos))
+            print("left rect:", self.left_rect.body.position)
+            print("right rect:", self.right_rect.body.position)
+            print("left rect ang:", (self.left_rect.body.angle * 180) / math.pi)
+            print("right rect ang:", (self.right_rect.body.angle * 180) / math.pi)
+            print("joint_A pos:", self.joint.a.position)
+            print("joint_B pos:", self.joint.b.position)
+            print("\n\n\n")
+
 
     def draw(self):
         self.screen.fill(GRAY)
         space.debug_draw(self.draw_options)
         pygame.display.update()
 
-def collide (arbiter, space, data):
-    print("hello")
-
 if __name__ == '__main__':
     Box()
     p1 = Vec2d(300, 400)
-    r1 = Rectangle(p1)
+    left_rect = Rectangle(p1)
     v1 = (-50, 30)
-    PivotJoint(r1.body, b0, v1, p1 + v1, True) #could be false
+    PivotJoint(left_rect.body, b0, v1, p1 + v1, True)
     p2 = Vec2d(400, 400)
-    r2 = Rectangle(p2)
+    right_rect = Rectangle(p2)
 
     v2 = (50, 30)
-    PivotJoint(r1.body, r2.body, v2, v1, True) #could be false
+
+    valley = Vec2d(0, -60)
+    pj = PivotJoint(left_rect.body, right_rect.body, v2, v1, True)
+
+    # PivotJoint(r1.body, r2.body, v2 + valley, v1 + valley, True)
 
 
 
 
 
-    actuator = Rectangle( (500, 452), body_static = True) 
+    actuator = Rectangle( (500, 460), body_static = True) 
 
-    PivotJoint(r2.body, actuator.body, v2, Vec2d(-50, -20), True)
+    PivotJoint(right_rect.body, actuator.body, v2, Vec2d(-50, -30), True)
 
     pushing_rect = Rectangle( (350, 500), size = (50, 100), body_static = True)
     
     a = App()
     a.actuator = actuator
     a.rect_up = pushing_rect
+    a.left_rect = left_rect
+    a.right_rect = right_rect
+    a.joint = pj
     a.run()
