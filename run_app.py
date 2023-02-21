@@ -86,7 +86,7 @@ class Segment:
         self.body.position = p0
         shape = pymunk.Segment(self.body, (0, 0), v, radius)
         shape.density = 0.1
-        shape.elasticity = 0.5
+        shape.elasticity = 0
         shape.filter = pymunk.ShapeFilter(group=1)
         shape.color = (0, 255, 0, 0)
         space.add(self.body, shape)
@@ -130,7 +130,7 @@ class Poly:
 
 
 class Rectangle:
-    def __init__(self, pos, collision_type, size=(100, 50), body_static = False):
+    def __init__(self, pos, size=(100, 50), body_static = False):
         if body_static:
             self.body = pymunk.Body(body_type = pymunk.Body.STATIC)
         else:
@@ -139,9 +139,8 @@ class Rectangle:
 
         shape = pymunk.Poly.create_box(self.body, size)
         shape.density = 0.1
-        shape.elasticity = 1
+        shape.elasticity = 0
         shape.friction = 1
-        shape.collision_type = collision_type
         space.add(self.body, shape)
 
 
@@ -211,14 +210,11 @@ def collide (arbiter, space, data):
 if __name__ == '__main__':
     Box()
     p1 = Vec2d(300, 400)
-    r1 = Rectangle(p1, 1)
+    r1 = Rectangle(p1)
     v1 = (-50, 30)
     PivotJoint(r1.body, b0, v1, p1 + v1, True) #could be false
     p2 = Vec2d(400, 400)
-    r2 = Rectangle(p2, 2)
-
-    handler = space.add_collision_handler(1, 2)
-    handler.seperate = collide
+    r2 = Rectangle(p2)
 
     v2 = (50, 30)
     PivotJoint(r1.body, r2.body, v2, v1, True) #could be false
@@ -227,11 +223,11 @@ if __name__ == '__main__':
 
 
 
-    actuator = Rectangle( (500, 450), 3, body_static = True) 
+    actuator = Rectangle( (500, 452), body_static = True) 
 
-    PivotJoint(r2.body, actuator.body, v2, Vec2d(-50, -25), True)
+    PivotJoint(r2.body, actuator.body, v2, Vec2d(-50, -20), True)
 
-    pushing_rect = Rectangle( (350, 500), 4, size = (50, 100), body_static = True)
+    pushing_rect = Rectangle( (350, 500), size = (50, 100), body_static = True)
     
     a = App()
     a.actuator = actuator
