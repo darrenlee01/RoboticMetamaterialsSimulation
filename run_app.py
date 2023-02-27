@@ -21,24 +21,32 @@ BLACK = (0, 0, 0)
 GRAY = (220, 220, 220)
 WHITE = (255, 255, 255)
 
+BOT_LEFT = 1
+BOT_RIGHT = 2
+TOP_LEFT = 3
+TOP_RIGHT = 4
+
 class PinJoint:
     def __init__(self, b, b2, a=(0, 0), a2=(0, 0)):
         joint = pymunk.constraints.PinJoint(b, b2, a, a2)
         space.add(joint)
 
 
-class PivotJoint:
-    def __init__(self, b, b2, a=(0, 0), a2=(0, 0), collide=True):
-        joint = pymunk.constraints.PinJoint(b, b2, a, a2)
-        joint.collide_bodies = collide
-        space.add(joint)
-
-
 class SlideJoint:
     def __init__(self, b, b2, a=(0, 0), a2=(0, 0), min=0, max=0, collide=True):
-        joint = pymunk.constraints.SlideJoint(b, b2, a, a2, min, max)
-        joint.collide_bodies = collide
-        space.add(joint)
+        self.joint = pymunk.constraints.SlideJoint(b, b2, a, a2, min, max)
+        self.joint.collide_bodies = collide
+        space.add(self.joint)
+
+    def is_constrained(self):
+        return self.joint.max == 0
+    
+    def switch_constrain(self):
+        if self.is_constrained():
+            self.joint._set_max(100)
+        else:
+            self.joint._set_max(0)
+
 
 
 class GrooveJoint:
@@ -167,6 +175,30 @@ class App:
 
         pygame.quit()
 
+    def corner_coord(self, body, corner):
+        center = body.position
+
+        width = 100
+        height = 50
+
+        angle = abs(body.angle) + abs(math.atan(height / width))
+        print("angle:", (angle * 180) / math.pi)
+        hyp = math.sqrt((height / 2) ** 2 + (width / 2) ** 2)
+        x_change = hyp * math.cos(angle)
+        y_change = hyp * math.sin(angle)
+
+        if corner == BOT_LEFT:
+            return center + Vec2d(-x_change, y_change)
+        elif corner == BOT_RIGHT:
+            return center + Vec2d(x_change, y_change)
+        elif corner == TOP_LEFT:
+            return center + Vec2d(-x_change, -y_change)
+        else:
+            return center + Vec2d(x_change, -y_change)
+
+    def dist(self, p1, p2):
+        return math.sqrt( (p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2 )
+
     def do_event(self, event):
         
         if event.type == QUIT:
@@ -175,9 +207,6 @@ class App:
         if event.type == KEYDOWN:
             if event.key in (K_q, K_ESCAPE):
                 self.running = False
-
-            elif event.key == K_p:
-                pygame.image.save(self.screen, 'joint.png')
             
             elif event.key == K_RIGHT:
                 orig_x, orig_y = self.actuator.body.position
@@ -202,13 +231,47 @@ class App:
         if event.type == pygame.MOUSEBUTTONUP:
             pos = pygame.mouse.get_pos()
             print(pos, type(pos))
-            print("left rect:", self.left_rect.body.position)
-            print("right rect:", self.right_rect.body.position)
-            print("left rect ang:", (self.left_rect.body.angle * 180) / math.pi)
-            print("right rect ang:", (self.right_rect.body.angle * 180) / math.pi)
-            print("joint_A pos:", self.joint.a.position)
-            print("joint_B pos:", self.joint.b.position)
-            print("\n\n\n")
+
+            joint1, joint2 = joints[0]
+
+            joint1.switch_constrain()
+            joint2.switch_constrain()
+
+            # for i in range(len(self.rectangles)):
+            #     for corner in [(-1, -1), (1, -1), (-1, 1), (1, 1)]:
+            #         corner = self.corner_coord(self.rectangles[i].body, corner)
+            #         if (self.dist(corner, Vec2d(pos[0], pos[1])) < 20):
+
+            #             if (corner[0] < 0):
+            #                 if (i <= 0):
+            #                     return
+            #                 cur_joint = self.joints[i - 1]
+            #             else:
+            #                 if (i >= len(self.rectangles) - 1):
+            #                     return
+            #                 cur_joint = self.joints[i]
+                        
+            #             cur_joint.switch_constrain()
+            #             print("switched constrain!")
+
+            #             return
+
+
+            # left_rect = self.rectangles[0]
+            # right_rect = self.rectangles[1]
+
+            # print("\n\n\n")
+            # print("left rect:", left_rect.body.position)
+            # print("right rect:", right_rect.body.position)
+            # print("left rect ang:", (left_rect.body.angle * 180) / math.pi)
+            # print("right rect ang:", (right_rect.body.angle * 180) / math.pi)
+            
+            # print("\n")
+            # print("left rect corner BOT_LEFT:", self.corner_coord(left_rect.body, BOT_LEFT))
+            # print("left rect corner TOP_LEFT:", self.corner_coord(left_rect.body, TOP_LEFT))
+            # print("left rect corner BOT_RIGHT:", self.corner_coord(left_rect.body, BOT_RIGHT))
+            # print("left rect corner TOP_RIGHT:", self.corner_coord(left_rect.body, TOP_RIGHT))
+            
 
 
     def draw(self):
@@ -218,6 +281,11 @@ class App:
 
 if __name__ == '__main__':
     Box()
+
+    rectangles = []
+    joints = []
+
+    # joints = []
     p1 = Vec2d(300, 400)
     left_rect = Rectangle(p1)
     v1 = (-50, 30)
@@ -228,7 +296,9 @@ if __name__ == '__main__':
     v2 = (50, 30)
 
     valley = Vec2d(0, -60)
-    pj = SlideJoint(left_rect.body, right_rect.body, v2, v1, True)
+    joints.append( (SlideJoint(left_rect.body, right_rect.body, a = v2, a2 = v1), 
+                    SlideJoint(left_rect.body, right_rect.body, a = v2 + valley, a2 = v1 + valley, min = 0, max = 70))
+    )
 
     # PivotJoint(r1.body, r2.body, v2 + valley, v1 + valley, True)
 
@@ -241,11 +311,12 @@ if __name__ == '__main__':
     SlideJoint(right_rect.body, actuator.body, v2, Vec2d(-50, -30))
 
     pushing_rect = Rectangle( (350, 500), size = (50, 100), body_static = True)
+
+    rectangles.append(left_rect)
+    rectangles.append(right_rect)
     
     a = App()
     a.actuator = actuator
     a.rect_up = pushing_rect
-    a.left_rect = left_rect
-    a.right_rect = right_rect
-    a.joint = pj
+    a.rectangles = rectangles
     a.run()
