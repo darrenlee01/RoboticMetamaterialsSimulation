@@ -10,7 +10,7 @@ from pygame.locals import *
 import math
 
 space = pymunk.Space()
-space.gravity = (0, 100)
+space.gravity = (0, 0)
 b0 = space.static_body
 
 size = w, h = 800, 800
@@ -43,7 +43,7 @@ class SlideJoint:
     
     def switch_constrain(self):
         if self.is_constrained():
-            self.joint._set_max(100)
+            self.joint._set_max(50)
         else:
             self.joint._set_max(0)
 
@@ -139,7 +139,7 @@ class Poly:
 
 
 class Rectangle:
-    def __init__(self, pos, size=(100, 50), body_static = False):
+    def __init__(self, pos, size=(100, 50), density = 0.0001, body_static = False):
         if body_static:
             self.body = pymunk.Body(body_type = pymunk.Body.STATIC)
         else:
@@ -147,7 +147,7 @@ class Rectangle:
         self.body.position = pos
 
         shape = pymunk.Poly.create_box(self.body, size)
-        shape.density = 0.1
+        shape.density = density
         shape.elasticity = 0
         shape.friction = 1
         space.add(self.body, shape)
@@ -209,24 +209,26 @@ class App:
                 self.running = False
             
             elif event.key == K_RIGHT:
-                orig_x, orig_y = self.actuator.body.position
-                self.actuator.body.position = (orig_x + 10, orig_y)
-                space.reindex_shapes_for_body(self.actuator.body)
+                self.actuator.body.apply_force_at_local_point( (100000, 0) )
+                # orig_x, orig_y = self.actuator.body.position
+                # self.actuator.body.position = (orig_x + 10, orig_y)
+                # space.reindex_shapes_for_body(self.actuator.body)
             
             elif event.key == K_LEFT:
-                orig_x, orig_y = self.actuator.body.position
-                self.actuator.body.position = (orig_x - 10, orig_y)
-                space.reindex_shapes_for_body(self.actuator.body)
+                self.actuator.body.apply_force_at_local_point( (-100000, 0) )
+                # orig_x, orig_y = self.actuator.body.position
+                # self.actuator.body.position = (orig_x - 10, orig_y)
+                # space.reindex_shapes_for_body(self.actuator.body)
 
-            elif event.key == K_UP:
-                orig_x, orig_y = self.rect_up.body.position
-                self.rect_up.body.position = (orig_x, orig_y - 10)
-                space.reindex_shapes_for_body(self.rect_up.body)
+            # elif event.key == K_UP:
+            #     orig_x, orig_y = self.rect_up.body.position
+            #     self.rect_up.body.position = (orig_x, orig_y - 10)
+            #     space.reindex_shapes_for_body(self.rect_up.body)
             
-            elif event.key == K_DOWN:
-                orig_x, orig_y = self.rect_up.body.position
-                self.rect_up.body.position = (orig_x, orig_y + 10)
-                space.reindex_shapes_for_body(self.rect_up.body)
+            # elif event.key == K_DOWN:
+            #     orig_x, orig_y = self.rect_up.body.position
+            #     self.rect_up.body.position = (orig_x, orig_y + 10)
+            #     space.reindex_shapes_for_body(self.rect_up.body)
 
         if event.type == pygame.MOUSEBUTTONUP:
             pos = pygame.mouse.get_pos()
@@ -297,20 +299,26 @@ if __name__ == '__main__':
 
     valley = Vec2d(0, -60)
     joints.append( (SlideJoint(left_rect.body, right_rect.body, a = v2, a2 = v1), 
-                    SlideJoint(left_rect.body, right_rect.body, a = v2 + valley, a2 = v1 + valley, min = 0, max = 70))
+                    SlideJoint(left_rect.body, right_rect.body, a = v2 + valley, a2 = v1 + valley, min = 0, max = 50))
     )
 
     # PivotJoint(r1.body, r2.body, v2 + valley, v1 + valley, True)
 
 
 
+    # r1 = Rectangle((200, 200)) 
+    # r1.body.apply_force_at_local_point( (100000, 0) , (0, 0))
 
+    actuator = Rectangle( (500, 460), size = (200, 50))
+    up_block = Rectangle( (550, 410), size = (50, 50), body_static = True)
+    down_block = Rectangle( (550, 510), size = (50, 50), body_static = True)
+    # actuator = Rectangle( (500, 460)) 
 
-    actuator = Rectangle( (500, 460), body_static = True) 
+    # SlideJoint(right_rect.body, actuator.body, v2, Vec2d(-50, -30))
+    SlideJoint(right_rect.body, actuator.body, v2, Vec2d(-100, -30))
 
-    SlideJoint(right_rect.body, actuator.body, v2, Vec2d(-50, -30))
-
-    pushing_rect = Rectangle( (350, 500), size = (50, 100), body_static = True)
+    # pushing_rect = Rectangle( (350, 500), size = (50, 100), body_static = True)
+    pushing_rect = None
 
     rectangles.append(left_rect)
     rectangles.append(right_rect)
