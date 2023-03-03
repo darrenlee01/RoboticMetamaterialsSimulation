@@ -13,7 +13,7 @@ space = pymunk.Space()
 space.gravity = (0, 0)
 b0 = space.static_body
 
-size = w, h = 800, 800
+size = w, h = 1000, 800
 fps = 30
 steps = 10
 
@@ -145,7 +145,8 @@ class Rectangle:
         else:
             self.body = pymunk.Body()
         self.body.position = pos
-
+        self.width = size[0]
+        self.height = size[1]
         shape = pymunk.Poly.create_box(self.body, size)
         shape.density = density
         shape.elasticity = 0
@@ -234,7 +235,7 @@ class App:
             pos = pygame.mouse.get_pos()
             print(pos, type(pos))
 
-            joint1, joint2 = joints[0]
+            joint1, joint2 = self.joints[0]
 
             joint1.switch_constrain()
             joint2.switch_constrain()
@@ -281,25 +282,35 @@ class App:
         space.debug_draw(self.draw_options)
         pygame.display.update()
 
-if __name__ == '__main__':
+def five_block_state():
+    move_left = 200
     Box()
 
     rectangles = []
     joints = []
-
-    # joints = []
-    p1 = Vec2d(300, 400)
-    left_rect = Rectangle(p1)
-    v1 = (-50, 30)
+    
+    p1 = Vec2d(300 - move_left, 400)
+    left_rect = Rectangle(p1, size = (50, 50))
+    v1 = (-25, 30)
     SlideJoint(left_rect.body, b0, v1, p1 + v1)
-    p2 = Vec2d(400, 400)
-    right_rect = Rectangle(p2)
+    p2 = Vec2d(350 - move_left, 400)
+    # rectangles.append(left_rect)
 
-    v2 = (50, 30)
+    right_rect = Rectangle(p2, size = (200, 50))
+
+    rectangles.append(left_rect)
+    rectangles.append(right_rect)
+
+    # rectangles.append(right_rect)
+
+    v2 = (25, 30)
+
+    right_v1 = Vec2d(-100, 30)
+    right_v2 = (100, 30)
 
     valley = Vec2d(0, -60)
-    joints.append( (SlideJoint(left_rect.body, right_rect.body, a = v2, a2 = v1), 
-                    SlideJoint(left_rect.body, right_rect.body, a = v2 + valley, a2 = v1 + valley, min = 0, max = 50))
+    joints.append( (SlideJoint(left_rect.body, right_rect.body, a = v2, a2 = right_v1), 
+                    SlideJoint(left_rect.body, right_rect.body, a = v2 + valley, a2 = right_v1 + valley, min = 0, max = 50))
     )
 
     # PivotJoint(r1.body, r2.body, v2 + valley, v1 + valley, True)
@@ -309,22 +320,85 @@ if __name__ == '__main__':
     # r1 = Rectangle((200, 200)) 
     # r1.body.apply_force_at_local_point( (100000, 0) , (0, 0))
 
-    actuator = Rectangle( (500, 460), size = (200, 50))
-    up_block = Rectangle( (550, 410), size = (50, 50), body_static = True)
-    down_block = Rectangle( (550, 510), size = (50, 50), body_static = True)
+    actuator_x = left_rect.width + right_rect.width + p1.x
+    actuator_y = 460
+    actuator = Rectangle( (actuator_x, actuator_y), size = (200, 50))
+    up_block = Rectangle( (actuator_x + 100, actuator_y - 50), size = (50, 50), body_static = True)
+    down_block = Rectangle( (actuator_x + 100, actuator_y + 50), size = (50, 50), body_static = True)
     # actuator = Rectangle( (500, 460)) 
 
     # SlideJoint(right_rect.body, actuator.body, v2, Vec2d(-50, -30))
-    SlideJoint(right_rect.body, actuator.body, v2, Vec2d(-100, -30))
+    SlideJoint(right_rect.body, actuator.body, right_v2, Vec2d(-actuator.width // 2, -30))
 
     # pushing_rect = Rectangle( (350, 500), size = (50, 100), body_static = True)
     pushing_rect = None
 
-    rectangles.append(left_rect)
-    rectangles.append(right_rect)
+
+    
     
     a = App()
     a.actuator = actuator
     a.rect_up = pushing_rect
     a.rectangles = rectangles
+    a.joints = joints
     a.run()
+
+if __name__ == '__main__':
+    print("Five Block mode?: ", end = "")
+    five_block = input() == "True"
+    if five_block:
+        five_block_state()
+    else:
+        
+        Box()
+
+        rectangles = []
+        joints = []
+
+        # joints = []
+        p1 = Vec2d(300, 400)
+        left_rect = Rectangle(p1)
+        v1 = (-50, 30)
+        SlideJoint(left_rect.body, b0, v1, p1 + v1)
+        p2 = Vec2d(400, 400)
+        right_rect = Rectangle(p2)
+
+        rectangles.append(left_rect)
+        rectangles.append(right_rect)
+
+        v2 = (50, 30)
+
+        valley = Vec2d(0, -60)
+        joints.append( (SlideJoint(left_rect.body, right_rect.body, a = v2, a2 = v1), 
+                        SlideJoint(left_rect.body, right_rect.body, a = v2 + valley, a2 = v1 + valley, min = 0, max = 50))
+        )
+
+        # PivotJoint(r1.body, r2.body, v2 + valley, v1 + valley, True)
+
+
+
+        # r1 = Rectangle((200, 200)) 
+        # r1.body.apply_force_at_local_point( (100000, 0) , (0, 0))
+
+        actuator_x = left_rect.width + right_rect.width + p1.x
+        actuator_y = 460
+        actuator = Rectangle( (actuator_x, actuator_y), size = (200, 50))
+        up_block = Rectangle( (actuator_x + 50, actuator_y - 50), size = (50, 50), body_static = True)
+        down_block = Rectangle( (actuator_x + 50, actuator_y + 50), size = (50, 50), body_static = True)
+        # actuator = Rectangle( (500, 460)) 
+
+        # SlideJoint(right_rect.body, actuator.body, v2, Vec2d(-50, -30))
+        SlideJoint(right_rect.body, actuator.body, v2, Vec2d(-actuator.width // 2, -actuator.height // 2  - 5))
+
+        # pushing_rect = Rectangle( (350, 500), size = (50, 100), body_static = True)
+        pushing_rect = None
+
+        # rectangles.append(left_rect)
+        # rectangles.append(right_rect)
+        
+        a = App()
+        a.actuator = actuator
+        a.rect_up = pushing_rect
+        a.rectangles = rectangles
+        a.joints = joints
+        a.run()
