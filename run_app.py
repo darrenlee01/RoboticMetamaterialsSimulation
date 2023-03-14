@@ -380,7 +380,7 @@ def five_block_state():
 
 if __name__ == '__main__':
     print("Five Block mode?: ", end = "")
-    five_block = input() == "True"
+    five_block = True
     if five_block:
         five_block_state()
     else:
