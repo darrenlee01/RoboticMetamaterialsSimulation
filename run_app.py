@@ -176,26 +176,59 @@ class App:
 
         pygame.quit()
 
-    def corner_coord(self, body, corner):
+    def corner_coord(self, rect, corner):
+        body = rect.body
         center = body.position
 
-        width = 100
-        height = 50
+        width = rect.width
+        height = rect.height
 
-        angle = abs(body.angle) + abs(math.atan(height / width))
-        print("angle:", (angle * 180) / math.pi)
-        hyp = math.sqrt((height / 2) ** 2 + (width / 2) ** 2)
-        x_change = hyp * math.cos(angle)
-        y_change = hyp * math.sin(angle)
+        a = width / 2
+        b = height / 2
+
+        angle = body.angle
+
+
 
         if corner == BOT_LEFT:
-            return center + Vec2d(-x_change, y_change)
+            x_change = -a * math.cos(angle) - b * math.sin(angle)
+            y_change = -a * math.sin(angle) + b * math.cos(angle)
+            return center + Vec2d(x_change, y_change)
         elif corner == BOT_RIGHT:
+            x_change = a * math.cos(angle) - b * math.sin(angle)
+            y_change = a * math.sin(angle) + b * math.cos(angle)
             return center + Vec2d(x_change, y_change)
         elif corner == TOP_LEFT:
-            return center + Vec2d(-x_change, -y_change)
+            x_change = -a * math.cos(angle) + b * math.sin(angle)
+            y_change = -a * math.sin(angle) - b * math.cos(angle)
+            return center + Vec2d(x_change, y_change)
         else:
-            return center + Vec2d(x_change, -y_change)
+            x_change = a * math.cos(angle) + b * math.sin(angle)
+            y_change = a * math.sin(angle) - b * math.cos(angle)
+            return center + Vec2d(x_change, y_change)
+
+
+
+        # print("CORNER COORD ANGLE:", (body.angle * 180) / math.pi)
+
+        bot_left_angle = abs(body.angle) + abs(math.atan(height / width))
+        print("angle:", (bot_left_angle * 180) / math.pi)
+        hyp = math.sqrt((height / 2) ** 2 + (width / 2) ** 2)
+        x_change_bot_left = hyp * math.cos(bot_left_angle)
+        y_change_bot_left = hyp * math.sin(bot_left_angle)
+
+        top_left_angle = math.atan
+        x_change_top_left = hyp * math.cos(angle)
+        y_change_top_left = hyp * math.sin(angle)
+
+        # if corner == BOT_LEFT:
+        #     return center + Vec2d(-x_change_bot_left, y_change_bot_left)
+        # elif corner == BOT_RIGHT:
+        #     return center + Vec2d(x_change, y_change)
+        # elif corner == TOP_LEFT:
+        #     return center + Vec2d(-x_change, -y_change)
+        # else:
+        #     return center + Vec2d(x_change, -y_change)
 
     def dist(self, p1, p2):
         return math.sqrt( (p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2 )
@@ -237,28 +270,35 @@ class App:
 
             joint1, joint2 = self.joints[0]
 
-            joint1.switch_constrain()
-            joint2.switch_constrain()
+            # joint1.switch_constrain()
+            # joint2.switch_constrain()
+        
 
-            # for i in range(len(self.rectangles)):
-            #     for corner in [(-1, -1), (1, -1), (-1, 1), (1, 1)]:
-            #         corner = self.corner_coord(self.rectangles[i].body, corner)
-            #         if (self.dist(corner, Vec2d(pos[0], pos[1])) < 20):
-
-            #             if (corner[0] < 0):
-            #                 if (i <= 0):
-            #                     return
-            #                 cur_joint = self.joints[i - 1]
-            #             else:
-            #                 if (i >= len(self.rectangles) - 1):
-            #                     return
-            #                 cur_joint = self.joints[i]
+            for i in range(len(self.rectangles)):
+                for corner_option in [BOT_LEFT, BOT_RIGHT, TOP_LEFT, TOP_RIGHT]:
+                    corner = self.corner_coord(self.rectangles[i], corner_option)
+                    if (self.dist(corner, Vec2d(pos[0], pos[1])) < 20):
                         
-            #             cur_joint.switch_constrain()
-            #             print("switched constrain!")
+                        if corner_option == BOT_LEFT:
+                            cur_joint = self.joints[i - 1][0]
+                            opposing_joint = self.joints[i - 1][1]
+                            print("switched BOT_LEFT")
+                        elif corner_option == TOP_LEFT:
+                            cur_joint = self.joints[i - 1][1]
+                            opposing_joint = self.joints[i - 1][0]
+                            print("switched TOP_LEFT")
+                        elif corner_option == BOT_RIGHT:
+                            cur_joint = self.joints[i][0]
+                            opposing_joint = self.joints[i][1]
+                            print("switched BOT_RIGHT")
+                        else:
+                            cur_joint = self.joints[i][1]
+                            opposing_joint = self.joints[i][0]
+                            print("switched TOP_RIGHT")
+                        
+                        cur_joint.switch_constrain()
 
-            #             return
-
+                        return
 
             # left_rect = self.rectangles[0]
             # right_rect = self.rectangles[1]
@@ -270,10 +310,10 @@ class App:
             # print("right rect ang:", (right_rect.body.angle * 180) / math.pi)
             
             # print("\n")
-            # print("left rect corner BOT_LEFT:", self.corner_coord(left_rect.body, BOT_LEFT))
-            # print("left rect corner TOP_LEFT:", self.corner_coord(left_rect.body, TOP_LEFT))
-            # print("left rect corner BOT_RIGHT:", self.corner_coord(left_rect.body, BOT_RIGHT))
-            # print("left rect corner TOP_RIGHT:", self.corner_coord(left_rect.body, TOP_RIGHT))
+            # print("left rect corner BOT_LEFT:", self.corner_coord(left_rect, BOT_LEFT))
+            # print("left rect corner TOP_LEFT:", self.corner_coord(left_rect, TOP_LEFT))
+            # print("left rect corner BOT_RIGHT:", self.corner_coord(left_rect, BOT_RIGHT))
+            # print("left rect corner TOP_RIGHT:", self.corner_coord(left_rect, TOP_RIGHT))
             
 
 
@@ -291,7 +331,7 @@ def five_block_state():
     actuator_width = 500
 
     # rectangle_widths = [50, 200, 50, 200]
-    # rectangle_widths = [50, 200, 50, 200]
+    # rectangle_widths = [200, 50, 200, 50]
     rectangle_widths = [50, 50, 50, 50, 50, 50]
     rectangle_widths.append(actuator_width)
     rectangle_height = 50
