@@ -36,6 +36,7 @@ class SlideJoint:
     def __init__(self, b, b2, a=(0, 0), a2=(0, 0), min=0, max=0, collide=True):
         self.joint = pymunk.constraints.SlideJoint(b, b2, a, a2, min, max)
         self.joint.collide_bodies = collide
+        self.max_force = 100000
         space.add(self.joint)
 
     def is_constrained(self):
@@ -147,6 +148,8 @@ class Rectangle:
         self.body.position = pos
         self.width = size[0]
         self.height = size[1]
+        self.forceFlag = 0
+        self.counter = 0
         shape = pymunk.Poly.create_box(self.body, size)
         shape.density = density
         shape.elasticity = 0
@@ -172,6 +175,11 @@ class App:
             self.clock.tick(fps)
 
             for i in range(steps):
+                print(self.rectangles[-2].counter)
+                if self.rectangles[-2].forceFlag == 1:
+                    self.rectangles[-2].body.force += ( (0, self.rectangles[-2].counter * -50) )
+                if self.rectangles[-2].forceFlag == 2:
+                    self.rectangles[-2].body.force += ( (0,  (10 - self.rectangles[-2].counter) * 50) )
                 space.step(1/fps/steps)
 
         pygame.quit()
@@ -253,16 +261,27 @@ class App:
                 # orig_x, orig_y = self.actuator.body.position
                 # self.actuator.body.position = (orig_x - 10, orig_y)
                 # space.reindex_shapes_for_body(self.actuator.body)
+            
+            elif event.key == K_b:
+                self.rectangles[-2].forceFlag = 0
 
             elif event.key == K_UP:
-                orig_x, orig_y = self.rect_up.body.position
-                self.rect_up.body.position = (orig_x, orig_y - 10)
-                space.reindex_shapes_for_body(self.rect_up.body)
+                # self.rectangles[-2].body.apply_force_at_local_point( (0, -100000) )
+                self.rectangles[-2].forceFlag = 1
+                if self.rectangles[-2].counter < 10:
+                    self.rectangles[-2].counter += 1
+                # orig_x, orig_y = self.rect_up.body.position
+                # self.rect_up.body.position = (orig_x, orig_y - 10)
+                # space.reindex_shapes_for_body(self.rect_up.body)
             
             elif event.key == K_DOWN:
-                orig_x, orig_y = self.rect_up.body.position
-                self.rect_up.body.position = (orig_x, orig_y + 10)
-                space.reindex_shapes_for_body(self.rect_up.body)
+                # self.rectangles[-2].body.apply_force_at_local_point( (0, 100000) )
+                self.rectangles[-2].forceFlag = 2
+                if self.rectangles[-2].counter > 0:
+                    self.rectangles[-2].counter -= 1
+                # orig_x, orig_y = self.rect_up.body.position
+                # self.rect_up.body.position = (orig_x, orig_y + 10)
+                # space.reindex_shapes_for_body(self.rect_up.body)
 
         if event.type == pygame.MOUSEBUTTONUP:
             pos = pygame.mouse.get_pos()
