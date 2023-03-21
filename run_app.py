@@ -175,7 +175,7 @@ class App:
             self.clock.tick(fps)
 
             for i in range(steps):
-                print(self.rectangles[-2].counter)
+                # print(self.rectangles[-2].counter)
                 if self.rectangles[-2].forceFlag == 1:
                     self.rectangles[-2].body.force += ( (0, self.rectangles[-2].counter * -50) )
                 if self.rectangles[-2].forceFlag == 2:
