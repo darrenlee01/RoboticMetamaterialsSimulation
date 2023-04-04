@@ -359,7 +359,7 @@ def horizontal_mode():
     for i in range(len(rectangle_widths) - 1):
         left_rect = rectangles[-1]
         left_rect_center = left_rect.body.position
-        left_rect_right_top = (left_rect.width // 2, left_rect.height // 2 + 5)
+        left_rect_right_bot = (left_rect.width // 2, left_rect.height // 2 + 5)
 
         right_rect_center = left_rect_center + (left_rect.width // 2 + rectangle_widths[i + 1] // 2, 0)
         right_rect = Rectangle(right_rect_center, size = (rectangle_widths[i + 1], rectangle_height))
@@ -367,8 +367,8 @@ def horizontal_mode():
 
 
         valley = Vec2d(0, - rectangle_height - 10)
-        joints.append( (SlideJoint(left_rect.body, right_rect.body, a = left_rect_right_top, a2 = right_rect_bot_left), 
-                        SlideJoint(left_rect.body, right_rect.body, a = left_rect_right_top + valley, a2 = right_rect_bot_left + valley, min = 0, max = 50))
+        joints.append( (SlideJoint(left_rect.body, right_rect.body, a = left_rect_right_bot, a2 = right_rect_bot_left), 
+                        SlideJoint(left_rect.body, right_rect.body, a = left_rect_right_bot + valley, a2 = right_rect_bot_left + valley, min = 0, max = 50))
         )
         rectangles.append(right_rect)
 
