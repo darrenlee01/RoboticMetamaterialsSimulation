@@ -11,7 +11,7 @@ import math
 
 space = pymunk.Space()
 space.gravity = (0, 10)
-b0 = space.static_body
+static_body = space.static_body
 
 size = screen_width, screen_height = 1500, 800
 fps = 30
@@ -165,6 +165,8 @@ class App:
         self.draw_options = DrawOptions(self.screen)
         self.running = True
         self.images = []
+        self.right_actuator = None
+        self.left_actuator = None
 
     def run(self):
         while self.running:
@@ -213,29 +215,6 @@ class App:
             x_change = a * math.cos(angle) + b * math.sin(angle)
             y_change = a * math.sin(angle) - b * math.cos(angle)
             return center + Vec2d(x_change, y_change)
-
-
-
-        # print("CORNER COORD ANGLE:", (body.angle * 180) / math.pi)
-
-        bot_left_angle = abs(body.angle) + abs(math.atan(height / width))
-        print("angle:", (bot_left_angle * 180) / math.pi)
-        hyp = math.sqrt((height / 2) ** 2 + (width / 2) ** 2)
-        x_change_bot_left = hyp * math.cos(bot_left_angle)
-        y_change_bot_left = hyp * math.sin(bot_left_angle)
-
-        top_left_angle = math.atan
-        x_change_top_left = hyp * math.cos(angle)
-        y_change_top_left = hyp * math.sin(angle)
-
-        # if corner == BOT_LEFT:
-        #     return center + Vec2d(-x_change_bot_left, y_change_bot_left)
-        # elif corner == BOT_RIGHT:
-        #     return center + Vec2d(x_change, y_change)
-        # elif corner == TOP_LEFT:
-        #     return center + Vec2d(-x_change, -y_change)
-        # else:
-        #     return center + Vec2d(x_change, -y_change)
 
     def dist(self, p1, p2):
         return math.sqrt( (p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2 )
@@ -316,7 +295,7 @@ class App:
         space.debug_draw(self.draw_options)
         pygame.display.update()
 
-def five_block_state():
+def horizontal_mode():
     # Box()
 
     rectangles = []
@@ -330,15 +309,16 @@ def five_block_state():
     rectangle_widths.append(right_actuator_width)
     rectangle_height = 50
 
-    starting_x = 100
+    starting_x = 400
     starting_y = 400
 
     start_rect_center = Vec2d(starting_x, starting_y)
     start_rect = Rectangle(start_rect_center, size = (rectangle_widths[0], rectangle_height))
     
+    
 
     start_rect_bot_left = (-start_rect.width // 2, start_rect.height // 2 + 5)
-    SlideJoint(start_rect.body, b0, start_rect_bot_left, start_rect_center + start_rect_bot_left)
+    SlideJoint(start_rect.body, static_body, start_rect_bot_left, start_rect_center + start_rect_bot_left)
 
     rectangles.append(start_rect)
 
@@ -377,50 +357,10 @@ def five_block_state():
     
     a = App()
     a.right_actuator = right_actuator
+    a.left_actuator = None
     a.rectangles = rectangles
     a.joints = joints
     a.run()
 
 if __name__ == '__main__':
-    print("Five Block mode?: ", end = "")
-    five_block = True
-    if five_block:
-        five_block_state()
-    else:
-        
-        Box()
-
-        rectangles = []
-        joints = []
-
-        p1 = Vec2d(300, 400)
-        left_rect = Rectangle(p1)
-        v1 = (-50, 30)
-        SlideJoint(left_rect.body, b0, v1, p1 + v1)
-        p2 = Vec2d(400, 400)
-        right_rect = Rectangle(p2)
-
-        rectangles.append(left_rect)
-        rectangles.append(right_rect)
-
-        v2 = (50, 30)
-
-        valley = Vec2d(0, -60)
-        joints.append( (SlideJoint(left_rect.body, right_rect.body, a = v2, a2 = v1), 
-                        SlideJoint(left_rect.body, right_rect.body, a = v2 + valley, a2 = v1 + valley, min = 0, max = 50))
-        )
-
-
-        right_actuator_x = left_rect.width + right_rect.width + p1.x
-        right_actuator_y = 460
-        right_actuator = Rectangle( (right_actuator_x, right_actuator_y), size = (200, 50))
-        up_block = Rectangle( (right_actuator_x + 50, right_actuator_y - 50), size = (50, 50), body_static = True)
-        down_block = Rectangle( (right_actuator_x + 50, right_actuator_y + 50), size = (50, 50), body_static = True)
-
-        SlideJoint(right_rect.body, right_actuator.body, v2, Vec2d(-right_actuator.width // 2, -right_actuator.height // 2  - 5))
-
-        a = App()
-        a.right_actuator = right_actuator
-        a.rectangles = rectangles
-        a.joints = joints
-        a.run()
+    horizontal_mode()
