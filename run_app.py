@@ -240,6 +240,18 @@ class App:
                 # self.right_actuator.body.position = (orig_x - 10, orig_y)
                 # space.reindex_shapes_for_body(self.right_actuator.body)
             
+            elif event.key == K_d:
+                self.left_actuator.body.apply_force_at_local_point( (100000, 0) )
+                # orig_x, orig_y = self.right_actuator.body.position
+                # self.right_actuator.body.position = (orig_x + 10, orig_y)
+                # space.reindex_shapes_for_body(self.right_actuator.body)
+            
+            elif event.key == K_a:
+                self.left_actuator.body.apply_force_at_local_point( (-100000, 0) )
+                # orig_x, orig_y = self.right_actuator.body.position
+                # self.right_actuator.body.position = (orig_x - 10, orig_y)
+                # space.reindex_shapes_for_body(self.right_actuator.body)
+            
             elif event.key == K_b:
                 self.rectangles[-2].forceFlag = 0
 
@@ -250,6 +262,18 @@ class App:
                     self.rectangles[-2].counter += 1
             
             elif event.key == K_DOWN:
+                # self.rectangles[-2].body.apply_force_at_local_point( (0, 100000) )
+                self.rectangles[-2].forceFlag = 2
+                if self.rectangles[-2].counter > 0:
+                    self.rectangles[-2].counter -= 1
+            
+            elif event.key == K_w:
+                # self.rectangles[-2].body.apply_force_at_local_point( (0, -100000) )
+                self.rectangles[-2].forceFlag = 1
+                if self.rectangles[-2].counter < 10:
+                    self.rectangles[-2].counter += 1
+            
+            elif event.key == K_s:
                 # self.rectangles[-2].body.apply_force_at_local_point( (0, 100000) )
                 self.rectangles[-2].forceFlag = 2
                 if self.rectangles[-2].counter > 0:
@@ -301,26 +325,30 @@ def horizontal_mode():
     rectangles = []
     joints = []
 
-    right_actuator_width = 500
+    actuator_width = 500
 
     # rectangle_widths = [50, 200, 50, 200]
     # rectangle_widths = [200, 50, 200, 50]
-    rectangle_widths = [50 for i in range(15)]
-    rectangle_widths.append(right_actuator_width)
+    rectangle_widths = [50 for i in range(14)]
+    rectangle_widths.append(actuator_width)
+    rectangle_widths.insert(0, actuator_width)
     rectangle_height = 50
 
-    starting_x = 400
+    starting_x = 10
     starting_y = 400
 
     start_rect_center = Vec2d(starting_x, starting_y)
-    start_rect = Rectangle(start_rect_center, size = (rectangle_widths[0], rectangle_height))
+    left_actuator = Rectangle(start_rect_center, size = (rectangle_widths[0], rectangle_height))
+
+    up_block = Rectangle( left_actuator.body.position + (50, -(rectangle_height // 2 + 25)), size = (50, 50), body_static = True)
+    down_block = Rectangle( left_actuator.body.position + (50, (rectangle_height // 2 + 25)), size = (50, 50), body_static = True)
     
     
 
-    start_rect_bot_left = (-start_rect.width // 2, start_rect.height // 2 + 5)
-    SlideJoint(start_rect.body, static_body, start_rect_bot_left, start_rect_center + start_rect_bot_left)
+    # start_rect_bot_left = (-start_rect.width // 2, start_rect.height // 2 + 5)
+    # SlideJoint(start_rect.body, static_body, start_rect_bot_left, start_rect_center + start_rect_bot_left)
 
-    rectangles.append(start_rect)
+    rectangles.append(left_actuator)
 
     left_rect = None
     right_rect = None
@@ -351,13 +379,17 @@ def horizontal_mode():
     down_block = Rectangle( right_actuator.body.position + (50, (rectangle_height // 2 + 25)), size = (50, 50), body_static = True)
 
     (right_actuator_left_joint, right_actuator_right_joint) =  joints[-1]
+    (left_actuator_left_joint, left_actuator_right_joint) = joints[0]
+
+    left_actuator_left_joint.switch_constrain()
+    left_actuator_right_joint.switch_constrain()
 
     right_actuator_left_joint.switch_constrain()
     right_actuator_right_joint.switch_constrain()
     
     a = App()
     a.right_actuator = right_actuator
-    a.left_actuator = None
+    a.left_actuator = left_actuator
     a.rectangles = rectangles
     a.joints = joints
     a.run()
