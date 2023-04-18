@@ -33,8 +33,10 @@ class PinJoint:
 
 
 class SlideJoint:
-    def __init__(self, b, b2, a=(0, 0), a2=(0, 0), min=0, max=0, collide=True):
+    def __init__(self, b, b2, a=(0, 0), a2=(0, 0), min=0, max=0, collide=True, left_rect = None, right_rect = None):
         self.joint = pymunk.constraints.SlideJoint(b, b2, a, a2, min, max)
+        self.left_rect = left_rect
+        self.right_rect = right_rect
         self.joint.collide_bodies = collide
         self.max_force = 100000
         space.add(self.joint)
@@ -167,7 +169,7 @@ class App:
         self.images = []
         self.right_actuator = None
         self.left_actuator = None
-
+        self.joints = []
     def run(self):
         while self.running:
             for event in pygame.event.get():
@@ -294,19 +296,19 @@ class App:
                         if corner_option == BOT_LEFT:
                             cur_joint = self.joints[i - 1][0]
                             opposing_joint = self.joints[i - 1][1]
-                            print("switched BOT_LEFT")
+                            # print("switched BOT_LEFT")
                         elif corner_option == TOP_LEFT:
                             cur_joint = self.joints[i - 1][1]
                             opposing_joint = self.joints[i - 1][0]
-                            print("switched TOP_LEFT")
+                            # print("switched TOP_LEFT")
                         elif corner_option == BOT_RIGHT:
                             cur_joint = self.joints[i][0]
                             opposing_joint = self.joints[i][1]
-                            print("switched BOT_RIGHT")
+                            # print("switched BOT_RIGHT")
                         else:
                             cur_joint = self.joints[i][1]
                             opposing_joint = self.joints[i][0]
-                            print("switched TOP_RIGHT")
+                            # print("switched TOP_RIGHT")
                         
                         cur_joint.switch_constrain()
 
@@ -317,10 +319,22 @@ class App:
     def draw(self):
         self.screen.fill(GRAY)
         space.debug_draw(self.draw_options)
+        for i in range(len(self.joints)):
+            joint1, joint2 = self.joints[i]
+            if (joint1.is_constrained()):
+                coord1 = self.corner_coord(joint1.left_rect, BOT_RIGHT)
+                pygame.draw.circle(self.screen, (0, 0, 0), coord1, 10)
+
+            if (joint2.is_constrained()):
+                coord2 = self.corner_coord(joint2.left_rect, TOP_RIGHT)
+                pygame.draw.circle(self.screen, (0, 0, 0), coord2, 10)
+                
+        
         pygame.display.update()
 
 def horizontal_mode():
     # Box()
+    a = App()
 
     rectangles = []
     joints = []
@@ -367,9 +381,9 @@ def horizontal_mode():
 
 
         valley = Vec2d(0, - rectangle_height - 10)
-        joints.append( (SlideJoint(left_rect.body, right_rect.body, a = left_rect_right_bot, a2 = right_rect_bot_left), 
-                        SlideJoint(left_rect.body, right_rect.body, a = left_rect_right_bot + valley, a2 = right_rect_bot_left + valley, min = 0, max = 50))
-        )
+        joint1 = SlideJoint(left_rect.body, right_rect.body, a = left_rect_right_bot, a2 = right_rect_bot_left, left_rect = left_rect, right_rect = right_rect)
+        joint2 = SlideJoint(left_rect.body, right_rect.body, a = left_rect_right_bot + valley, a2 = right_rect_bot_left + valley, min = 0, max = 50, left_rect = left_rect, right_rect = right_rect)
+        joints.append( (joint1, joint2) )
         rectangles.append(right_rect)
 
     
@@ -387,7 +401,6 @@ def horizontal_mode():
     right_actuator_left_joint.switch_constrain()
     right_actuator_right_joint.switch_constrain()
     
-    a = App()
     a.right_actuator = right_actuator
     a.left_actuator = left_actuator
     a.rectangles = rectangles
